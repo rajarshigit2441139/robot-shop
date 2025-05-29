@@ -7,6 +7,12 @@ on:
   pull_request:
     paths:
       - 'cart/**'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'main'
 
 jobs:
  
