@@ -3,13 +3,7 @@ on:
   push:
     branches:
       - 'master'
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to build'
-        required: false
-        default: 'master'
-
+  
     paths:
       - cart/**
       - catalog/**
@@ -21,6 +15,12 @@ on:
       - shipping/**
       - user/**
       - web/**
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'master'
 
 jobs:
   detect-changes:
