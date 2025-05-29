@@ -26,7 +26,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - id: Shared
-        uses: ./.github/actions/shared-build
+        uses: ./.github/action/shared-build
         with:
           arch: ${{ matrix.arch }}
           context: cart
@@ -50,7 +50,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       - id: Shared
-        uses: ./.github/actions/shared-build
+        uses: ./.github/action/shared-build
         with:
           arch: ${{ matrix.arch }}
           context: cart
