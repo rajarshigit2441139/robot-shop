@@ -1,112 +1,54 @@
 name: docker-compose-actions-workflow
+
 on:
   push:
-    branches:
-      - 'master'
-  
     paths:
-      - cart/**
-      - catalog/**
-      - dispatch/**
-      - mongo/**
-      - mysql/**
-      - payment/**
-      - ratings/**
-      - shipping/**
-      - user/**
-      - web/**
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to build'
-        required: false
-        default: 'master'
-      
+      - 'cart/**'
+  pull_request:
+    paths:
+      - 'cart/**'
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch || 'master' }} # Optional
-      - name: Filter changed directories
-        id: filter
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            cart: 'cart/**'
-            catalog: 'catalog/**'
-            # ... (other services)
-      - name: Set matrix
-        id: set-matrix
-        run: |
-          changed=()
-          # If workflow_dispatch, include all services
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            for svc in cart catalog dispatch mongo mysql payment ratings shipping user web; do
-              if [[ -d "$svc" ]]; then
-                changed+=("\"$svc\"")
-              fi
-            done
-          else
-            # Otherwise, use git diff
-            for svc in cart catalog dispatch mongo mysql payment ratings shipping user web; do
-              if [[ -d "$svc" ]]; then
-                if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-                  if [[ $(git diff --name-only HEAD^ HEAD -- "$svc/" | wc -l) -gt 0 ]]; then
-                    changed+=("\"$svc\"")
-                  fi
-                else
-                  # On first commit, include all services
-                  changed+=("\"$svc\"")
-                fi
-              fi
-            done
-          fi
-          # Ensure the matrix is never empty in JSON (if you want to skip, use the condition above)
-          if [[ ${#changed[@]} -eq 0 ]]; then
-            echo "matrix={\"service\":[]}" >> $GITHUB_OUTPUT
-          else
-            echo "matrix={\"service\":[${changed[*]}]}" >> $GITHUB_OUTPUT
-          fi
-
-
-  build-and-test:
-    needs: detect-changes
-    if: ${{ fromJson(needs.detect-changes.outputs.matrix).service != '' }}
+ 
+  build-test:
+    if: github.ref != 'refs/heads/master' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
-    outputs:
-      image_tag: ${{ steps.set-tag.outputs.image_tag }}
+      matrix:
+        arch: [amd64, arm64]
     steps:
-      - uses: actions/checkout@v4
-      - name: Set image tag
-        id: set-tag
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - id: Shared
+        uses: ./.github/actions/shared-build
+        with:
+          arch: ${{ matrix.arch }}
+          context: cart
+          dockerfile: cart/Dockerfile
+          tag_prefix: ghcr.io/rajarshigit2441139/robot-shop-cart
+          push: false
+      - name: Run tests
         run: |
-          echo "image_tag=ghcr.io/${{ github.repository_owner }}/${{ matrix.service }}:latest" >> $GITHUB_OUTPUT
-      - name: Build and test
-        run: |
-          cd ${{ matrix.service }}
-          docker build -t ${{ steps.set-tag.outputs.image_tag }} .
-          docker run --rm ${{ steps.set-tag.outputs.image_tag }}
-
-  # push-to-ghcr:
-  #   needs: build-and-test
-  #   if: ${{ fromJson(needs.detect-changes.outputs.matrix).service != '' }}
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Login to GHCR
-  #       uses: docker/login-action@v3
-  #       with:
-  #         registry: ghcr.io
-  #         username: ${{ github.actor }}
-  #         password: ${{ secrets.GITHUB_TOKEN }}
-  #     - name: Push image to GHCR
-  #       run: docker push ${{ needs.build-and-test.outputs.image_tag }}
+          docker run --rm ${{steps.shared.outputs..tag-prefix}}:${{ matrix.arch }}:latest
+  
+  Push:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - id: Shared
+        uses: ./.github/actions/shared-build
+        with:
+          arch: ${{ matrix.arch }}
+          context: cart
+          dockerfile: cart/Dockerfile
+          tag_prefix: ghcr.io/rajarshigit2441139/robot-shop-cart
+          push: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
