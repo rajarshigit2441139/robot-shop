@@ -3,6 +3,13 @@ on:
   push:
     branches:
       - 'master'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'master'
+
     paths:
       - cart/**
       - catalog/**
