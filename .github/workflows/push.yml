@@ -35,7 +35,7 @@ jobs:
           push: false
       - name: Run tests
         run: |
-          docker run --rm ${{steps.shared.outputs..tag-prefix}}:${{ matrix.arch }}:latest
+          docker run --rm ${{steps.shared.outputs.tag-prefix}}:${{ matrix.arch }}:latest
   
   Push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
