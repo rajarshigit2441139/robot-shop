@@ -76,7 +76,7 @@ jobs:
 
   build-and-test:
     needs: detect-changes
-    # if: ${{ fromJson(needs.detect-changes.outputs.matrix).service != '' }}
+    if: ${{ fromJson(needs.detect-changes.outputs.matrix).service != '' }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
