@@ -28,48 +28,31 @@ jobs:
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || 'master' }} # Optional
       - name: Filter changed directories
         id: filter
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            cart:
-              - 'cart/**'
-            catalog:
-              - 'catalog/**'
-            dispatch:
-              - 'dispatch/**'
-            mongo:
-              - 'mongo/**'
-            mysql:
-              - 'mysql/**'
-            payment:
-              - 'payment/**'
-            ratings:
-              - 'ratings/**'
-            shipping:
-              - 'shipping/**'
-            user:
-              - 'user/**'
-            web:
-              - 'web/**'
+            cart: 'cart/**'
+            catalog: 'catalog/**'
+            # ... (other services)
       - name: Set matrix
         id: set-matrix
         run: |
           changed=()
           for svc in cart catalog dispatch mongo mysql payment ratings shipping user web; do
-            if [[ "${{ steps.filter.outputs.${svc} }}" == 'true' ]]; then
-              changed+=("${svc}")
+            if [[ -d "$svc" && $(git diff --name-only HEAD^ HEAD -- "$svc/" | wc -l) -gt 0 ]]; then
+              changed+=("\"$svc\"")
             fi
           done
           echo "matrix={\"service\":[${changed[*]}]}" >> $GITHUB_OUTPUT
-  
+
   build-and-test:
     needs: detect-changes
-    # if: ${{ fromJson(needs.detect-changes.outputs.matrix).service != '' }}
+    if: ${{ fromJson(needs.detect-changes.outputs.matrix).service != '' }}
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
