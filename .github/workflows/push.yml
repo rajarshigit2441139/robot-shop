@@ -25,8 +25,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - id: Shared
-        uses: ./.github/action/shared-build
+      - id: shared
+        uses: ./.github/actions/shared-build
         with:
           arch: ${{ matrix.arch }}
           context: cart
@@ -35,7 +35,7 @@ jobs:
           push: false
       - name: Run tests
         run: |
-          docker run --rm ${{steps.shared.outputs.tag-prefix}}:${{ matrix.arch }}:latest
+          docker run --rm ${{steps.shared.outputs.tag_prefix}}:${{ matrix.arch }}-latest
   
   Push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
@@ -49,8 +49,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - id: Shared
-        uses: ./.github/action/shared-build
+      - id: shared
+        uses: ./.github/actions/shared-build
         with:
           arch: ${{ matrix.arch }}
           context: cart

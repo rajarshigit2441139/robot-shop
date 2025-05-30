@@ -51,7 +51,7 @@ runs:
      uses: docker/build-push-action@v6
      with:
         context: ${{ inputs.context}}
-        dockerfile: ${{ inputs.dockerfile }}
+        file: ${{ inputs.dockerfile }}
         push: ${{ inputs.push }}
         platforms: linux/${{ inputs.arch }}
         tags: ${{ inputs.tag_prefix }}:${{ inputs.arch }}
