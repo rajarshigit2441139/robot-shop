@@ -39,7 +39,7 @@ jobs:
           tag_prefix: ghcr.io/rajarshigit2441139/robot-shop-cart
           push: "false"
       - name: Run tests
-        run: docker run --rm --env REDIS_HOST=redis ${{steps.shared.outputs.tag_prefix}}-${{ matrix.arch }}:latest
+        run: docker run --rm --network host ${{steps.shared.outputs.tag_prefix}}-${{ matrix.arch }}:latest
   
   Push:
     if: github.event_name == 'push' && github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
