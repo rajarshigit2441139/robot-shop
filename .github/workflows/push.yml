@@ -32,7 +32,7 @@ jobs:
           context: cart
           dockerfile: cart/Dockerfile
           tag_prefix: ghcr.io/rajarshigit2441139/robot-shop-cart
-          push: false
+          push: "false"
       - name: Run tests
         run: docker run --rm ${{steps.shared.outputs.tag_prefix}}-${{ matrix.arch }}:latest
   
