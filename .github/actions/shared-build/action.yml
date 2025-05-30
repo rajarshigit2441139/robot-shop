@@ -28,7 +28,7 @@ inputs:
 outputs:
   tag_prefix:
     description: 'The tag prefix used for the Docker image'
-    value: ${{ steps.extract.output.tag_prefix }}
+    value: ${{ steps.extract.outputs.tag_prefix }}
   arch:
     description: 'The architecture used for the build'
     value: ${{ inputs.arch }}
