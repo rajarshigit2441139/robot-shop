@@ -54,7 +54,7 @@ runs:
         file: ${{ inputs.dockerfile }}
         push: ${{ inputs.push }}
         platforms: linux/${{ inputs.arch }}
-        tags: ${{ inputs.tag_prefix }}:${{ inputs.arch }}
+        tags: ${{ inputs.tag_prefix }}-${{ inputs.arch }}:latest
         load: ${{ inputs.push != 'true' }}
      
      
