@@ -42,14 +42,11 @@ runs:
    - name: Set up Buildx
      uses: docker/setup-buildx-action@v3
 
-
    - name: Extract tag prefix
      id: extract
      shell: bash
      run: |
        echo "tag_prefix=${{ inputs.tag_prefix }}" >> $GITHUB_OUTPUT
-
-      
 
    - name: Login to GHCR
      if: ${{inputs.push == 'true'}}
@@ -57,7 +54,7 @@ runs:
      with:
         registry: ghcr.io
         username: ${{ github.actor }}
-        token: ${{ inputs.github_token }}
+        password: ${{ inputs.github_token }}
 
    - name: Build and optionally push Docker image
      uses: docker/build-push-action@v6
