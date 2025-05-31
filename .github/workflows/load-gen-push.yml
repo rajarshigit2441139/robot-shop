@@ -1,0 +1,59 @@
+name: load-gen Build Push
+
+on:
+  push:
+    paths:
+      - 'load-gen/**'
+  pull_request:
+    paths:
+      - 'load-gen/**'
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build'
+        required: false
+        default: 'master'
+
+jobs:
+ 
+  build-test:
+    if: github.ref != 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [amd64, arm64] 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - id: shared
+        uses: ./.github/actions/shared-build
+        with:
+          arch: ${{ matrix.arch }}
+          context: load-gen
+          dockerfile: load-gen/Dockerfile
+          tag_prefix: ghcr.io/rajarshigit2441139/robot-shop-load-gen
+          push: "false"
+    
+  Push:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    strategy:
+      matrix:
+        arch: [amd64, arm64]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - id: shared
+        uses: ./.github/actions/shared-build
+        with:
+          arch: ${{ matrix.arch }}
+          context: load-gen
+          dockerfile: load-gen/Dockerfile
+          tag_prefix: ghcr.io/rajarshigit2441139/robot-shop-load-gen
+          push: "true"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+     
